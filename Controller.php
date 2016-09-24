@@ -8,9 +8,9 @@
 
 namespace VK;
 
-class Auth {
+class Controller {
     const client_id = '4369157';
-    const client_secret = 'VMOiU8u2WHf8A1Kz1H79';
+    const client_secret = 'VMOiU8u2WHf8A1Kz1H78';
 
     /*
      * Access bitmasks
@@ -29,7 +29,18 @@ class Auth {
     protected $_redirect_url = 'https://p1ratrulezzz.me/vkauth_verify.php';
     protected $_auth_token_url = 'https://oauth.vk.com/access_token';
 
-    protected $base_path = '';
+    /**
+     * @var Storage
+     */
+    protected $_storage = null;
+
+    public $base_path = '';
+
+    public function __construct(Storage $storage) {
+        $this->_storage = $storage;
+        $this->base_path = dirname($_SERVER['SCRIPT_NAME']);
+    }
+
     public function doAuthFlow() {
         $params = [
             'client_id' => static::client_id,
@@ -97,9 +108,12 @@ class Auth {
     }
 
     public function checkAuth($redirect = false) {
-        if (isset($_SESSION['access_token'])) {
-            $this->access_token = $_SESSION['access_token'];
-            return true;
+        $access_token = $this->_storage->get('access_token', null);
+        if ($access_token) {
+            $this->access_token = $access_token;
+            if ($this->_checkToken()) {
+                return TRUE;
+            }
         }
 
         if ($redirect) {
@@ -107,6 +121,18 @@ class Auth {
         }
 
         return false;
+    }
+
+    public function _checkToken() {
+        $response = $this->callVK('users.get', [
+            'name_case' => 'Nom',
+        ]);
+
+        if (!isset($response->response[0]->id)) {
+            return false;
+        }
+
+        return true;
     }
 
     public function doRefreshToken() {
@@ -131,7 +157,7 @@ class Auth {
                 throw new  \Exception();
             }
 
-            $_SESSION['access_token'] = $response->access_token;
+            $this->_storage->set('access_token', $response->access_token);
             $this->action('index');
         }
         catch (\Exception $e) {
@@ -141,9 +167,7 @@ class Auth {
     }
 
     public function doIndex() {
-        $audios = $this->callVK('audio.get');
-
-        var_dump($audios);
+        echo 'Your access token is OK. Daemon should work fine.';
     }
 
     /**
@@ -151,40 +175,10 @@ class Auth {
      * @param array $params
      */
     public function action($action, $params = []) {
-        $url = $this->base_path . '/auth.php'; //@fixme: Replace with script name taken from $_SERVER.
+        $url = $_SERVER['SCRIPT_NAME'];
         $params['do'] = $action;
         $url .= '?' . http_build_query($params);
         header('Location: ' . $url);
         exit;
     }
-
-    /**
-     * @param $name
-     * @param null $value
-     * @param bool $global
-     * @param array $options
-     * @return bool
-     */
-    public static function setCookie($name, $value = null, $options = array()) {
-        // Merge defaults
-        $options += session_get_cookie_params();
-        return setcookie($name, $value, time() + $options['lifetime'], $options['path'], $options['domain'], $options['secure'], $options['httponly']);
-    }
 }
-
-session_start();
-$auth = new Auth();
-$action = isset($_GET['do']) ? $_GET['do'] : 'authFlow';
-$actionMethod = 'do' . ucfirst($action);
-// Check if was already authorized
-if ($actionMethod != 'doAuthFlow' && $actionMethod != 'doRefreshToken' && !$auth->checkAuth(true)) {
-    $auth->addRedirection('action', ['data' => $action]);
-}
-
-// Check if we have any sceduled redirect tasks.
-$auth::performRedirectIfExist();
-if (!is_callable([$auth, $actionMethod])) {
-    throw new \Exception('Can\'t find method named ' . $actionMethod . '');
-}
-
-call_user_func([$auth, $actionMethod]);
