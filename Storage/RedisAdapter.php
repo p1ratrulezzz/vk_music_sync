@@ -41,16 +41,17 @@ class RedisAdapter implements AdapterInterface {
 
   public function scheduleUser($id) {
     $key = 'user:' . $id;
-    $data = $this->_redis->hGet($key);
-    if ($data !== FALSE) {
-      return FALSE;
+    if ($this->_redis->exists($key)) {
+      return false;
     }
 
     $info = [
-      'added' => time(),
+      'added' => gmdate('c'),
       'id' => $id,
     ];
 
-    $this->_redis->hSet($key, 'info', serialize($info));
+    $this->_redis->hMset($key, $info);
+
+    return true;
   }
 }
