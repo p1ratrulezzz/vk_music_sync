@@ -17,7 +17,7 @@ $controller = null;
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'Boot.php';
 
 session_start();
-$action = isset($_GET['do']) ? $_GET['do'] : 'authFlow';
+$action = isset($_GET['do']) ? $_GET['do'] : 'index';
 $actionMethod = 'do' . ucfirst($action);
 // Check if was already authorized
 if ($actionMethod != 'doAuthFlow' && $actionMethod != 'doRefreshToken' && !$controller->checkAuth(true)) {

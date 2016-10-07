@@ -15,6 +15,7 @@ class RedisAdapter implements AdapterInterface {
    */
   protected $_redis = NULL;
   public function init($config = []) {
+    // @fixme: Move or at least copy settings to defaults settings
     $config += [
       'host' => 'localhost',
       'port' => '6379',
@@ -22,7 +23,7 @@ class RedisAdapter implements AdapterInterface {
     ];
 
     $this->_redis = new \Redis();
-    $status = $this->_redis->connect($config['host'], $config['port']);
+    $this->_redis->connect($config['host'], $config['port']);
     $this->_redis->select($config['dbIndex']);
     $status = ($this->_redis->ping() == '+PONG');
     if (!$status) {
@@ -39,6 +40,12 @@ class RedisAdapter implements AdapterInterface {
     return $this->_redis->set($name, $value);
   }
 
+  /**
+   * @param $id
+   *
+   * @return bool
+   * @fixme: Rename to scheduleUserObject and pass object as parameter
+   */
   public function scheduleUser($id) {
     $key = 'user:' . $id;
     if ($this->_redis->exists($key)) {
@@ -48,10 +55,77 @@ class RedisAdapter implements AdapterInterface {
     $info = [
       'added' => gmdate('c'),
       'id' => $id,
+      'index' => 0,
+      'updated' => gmdate('c'),
     ];
 
     $this->_redis->hMset($key, $info);
 
+    // Add user to list
+    $this->_redis->rPush('users', $id);
+
     return true;
+  }
+
+  public function loadState() {
+    if (false === ($state = $this->_redis->hGetAll('state'))) {
+      $state = [];
+    }
+
+    return $state;
+  }
+
+  public function saveState($state) {
+    $this->_redis->hMset('state', $state);
+    return true;
+  }
+
+  public function loadUserByIndex($index) {
+     if (($data = $this->_redis->lGet('users', $index)) && $user = $this->loadUserById($data)) {
+       return $user;
+     }
+
+    return false;
+  }
+
+  public function loadUserById($id) {
+    return $this->_redis->hGetAll('user:' . $id);
+  }
+
+  public function updateUser($user) {
+    return $this->_redis->hMset('user:' . $user['id'], $user);
+  }
+
+  public function addAudioToUserList($user_id, $audio_id) {
+    $key = 'audiolist:' . $user_id;
+    $key2 = 'audiolist2:' . $user_id;
+//    $latest_item = $this->_redis->zRevRange($key, 0, 0, true);
+//    $score = 0;
+//    if (!empty($latest_item)) {
+//      $score = reset($latest_item) + 1;
+//    }
+
+    $this->_redis->sAdd($key, $audio_id);
+    $this->_redis->hSet($key2, $audio_id, $audio_id);
+
+    return true;
+  }
+
+  public function updateAudioRecord(array $audio) {
+    $this->_redis->hMset('audio:' . $audio['id'], $audio);
+
+    return true;
+  }
+
+  public function getAudioUserListByUserId($id) {
+    $key = 'audiolist:' . $id;
+    return $this->_redis->zRange($key, 0, -1);
+  }
+
+  public function loadAudioById($id) {
+    return $this->_redis->hMGet('audio:' . $id, [
+      'artist',
+      'title',
+    ]);
   }
 }

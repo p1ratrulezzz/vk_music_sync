@@ -14,6 +14,11 @@ $settings = [];
 // Include settings
 require_once __DIR__ . '/settings.php';
 
+// Default settings
+$settings += [
+  'audio_per_request' => 1000,
+];
+
 // Require interfaces
 require_once __DIR__ . '/Storage/AdapterInterface.php';
 

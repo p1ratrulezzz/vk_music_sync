@@ -55,4 +55,54 @@ class Storage {
   public function scheduleUser($id) {
     return $this->_adapter->scheduleUser($id);
   }
+
+  public function loadState() {
+    $state = $this->_adapter->loadState();
+
+    // Merge defaults
+    $state += [
+      'index' => 0,
+    ];
+
+    return $state;
+  }
+
+  public function saveState($state) {
+    return $this->_adapter->saveState($state);
+  }
+
+  public function loadUserByIndex($index) {
+    return $this->_adapter->loadUserByIndex($index);
+  }
+
+  public function loadUserById($id) {
+    return $this->_adapter->loadUserById($id);
+  }
+
+  public function updateUser(array $user) {
+    $user['updated'] = gmdate('c');
+    return $this->_adapter->updateUser($user);
+  }
+
+  public function addAudioToUserList($user_id, $audio_id) {
+    return $this->_adapter->addAudioToUserList($user_id, $audio_id);
+  }
+
+  public function updateAudioRecord(array $audio) {
+    if (!isset($audio['data_saved_as'])) {
+      $audio['data_saved_as'] = 'none';
+      $audio['data_save_as'] = 'file';
+      $audio['data_save_value'] = '';
+    }
+
+    return $this->_adapter->updateAudioRecord($audio);
+  }
+
+  public function getAudioUserListByUserId($id) {
+    return $this->_adapter->getAudioUserListByUserId($id);
+  }
+
+  public function loadAudioById($id) {
+    return $this->_adapter->loadAudioById($id);
+  }
 }

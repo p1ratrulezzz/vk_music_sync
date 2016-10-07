@@ -9,14 +9,11 @@
 namespace VK;
 
 /**
+ * Variables includes from other files
+ * @var $settings array
  * @var $controller Controller
- */
-$controller = null;
-
-/**
  * @var $storage Storage
  */
-$storage = null;
 
 require_once __DIR__. '/Boot.php';
 
@@ -28,6 +25,12 @@ if (!$controller->checkAuth()) {
 if (php_sapi_name() != 'cli') {
   die("Please, run this script using cli");
 }
+
+/**
+ * Default PHP CLI variables
+ * @var $argv array
+ * @var $argc array
+ */
 
 $params = [
   'action' => 'job',
@@ -54,5 +57,56 @@ switch ($params['action']) {
       $storage->scheduleUser($item->id);
     }
     //$storage->
+    break;
+  case 'job':
+    $state = $storage->loadState();
+    $last_time_no_result = false;
+    for ($i = 0; $i<=20; $i++) {
+      $user = $storage->loadUserByIndex($state['index']++);
+
+      // Save new index immediately
+      $storage->saveState($state);
+
+      if (!$user) {
+        $state['index'] = 0;
+        if (!$last_time_no_result) {
+          $last_time_no_result = true;
+          continue;
+        }
+        else {
+          // No items to process at all
+          exit;
+        }
+      }
+
+      $last_time_no_result = false;
+
+      $audios = $controller->callVK('audio.get', [
+        'owner_id'  => $user['id'],
+        'need_user' => 0,
+        'offset'    => $user['index'],
+        'count'     => $settings['audio_per_request'],
+      ]);
+
+      if (isset($audios->response->items)) {
+        $user['count'] = $audios->response->count;
+        $user['index'] += $settings['audio_per_request'];
+
+        if (empty($audios->response->items)) {
+          $user['index'] = 0;
+        }
+
+        // Update user with new info
+        $storage->updateUser($user);
+
+        // Add all audios to database
+        foreach ($audios->response->items as $_audio) {
+          $storage->addAudioToUserList($user['id'], $_audio->id);
+          $storage->updateAudioRecord((array) $_audio);
+        }
+      }
+    }
+
+    //$storage->saveState($state);
     break;
 }

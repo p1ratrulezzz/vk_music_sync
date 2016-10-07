@@ -45,7 +45,7 @@ class Controller {
         $params = [
             'client_id' => static::client_id,
             'redirect_uri' => $this->_redirect_url,
-            'scope' => static::access_audio + static::access_offline,
+            'scope' => static::access_audio,
             'v' => static::api_version,
             'response_type' => 'code',
         ];
@@ -73,6 +73,25 @@ class Controller {
 
         // Add redirect info to session storage.
         array_push($_SESSION, $options);
+    }
+
+    public function doGeneratePlaylist() {
+        if (!isset($_GET['id'])) {
+            die('Please provide id of a user');
+        }
+
+        $list = $this->_storage->getAudioUserListByUserId($_GET['id']);
+        if ($list) {
+            $i = 1;
+            echo "<div>Playlist for user {$_GET['id']}</div>";
+            foreach ($list as $item) {
+                if ($audio = $this->_storage->loadAudioById($item)) {
+                    $audio['track_number'] = $i++;
+                    include __DIR__ . '/templates/audio_item.tpl.php';
+                }
+
+            }
+        }
     }
 
     public static function performRedirectIfExist() {
