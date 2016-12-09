@@ -123,7 +123,7 @@ class Zodiak {
 
     $sorted = static::getSignSortedMap($type);
 
-    $sign = NULL;
+    $sign = end($sorted); // Capricorn - usually, latest element is first so it is the last
     foreach ($sorted as $_dates => $_sign) {
       if (strcmp($_dates, $compare_string) >= 0) {
         $sign = $_sign;

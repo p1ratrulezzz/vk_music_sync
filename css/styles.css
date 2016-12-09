@@ -7,6 +7,36 @@ html body {}
     display: inline;
 }
 
+.clearfix {
+    clear: both;
+}
+
 .item-actions {
     display: block;
 }
+
+.table-wrapper {
+    display: block;
+    width: 420px;
+}
+
+.table-wrapper .table-row .table-col {
+    display: block;
+    float: left;
+    width: 128px;
+    height: 40px;
+    border: #1c11c7 1px solid;
+    text-align: right;
+}
+
+.table-wrapper .table-row .table-col.first {
+    text-align: left;
+}
+
+.table-wrapper .table-row.first .table-col {
+    border: #364066 solid 3px;
+    text-align: center;
+    width: 124px;
+    height: 70px;
+}
+

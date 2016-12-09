@@ -228,11 +228,118 @@ class Controller {
         $this->pageContentEnd();
     }
 
+    public function getParam($name, $default = NULL) {
+        return isset($_GET[$name]) && ($filtered = filter_var($_GET[$name])) !== FALSE && $filtered != '' ? $filtered : $default;
+    }
+
     public function doGenerateZodiakProcess() {
         require_once __DIR__ . '/Processors/Zodiak.php';
-
-
         $model = new Model();
+
+        if (NULL === ($name = $this->getParam('vk_url'))) {
+            $model->errors[] = 'error';
+        }
+
+        // Preprocess VK account name. Convert to id.
+        if (preg_match('/http(?:s)?\:\/\/[^\/]+\/([^\/]+)/i', $name, $reg)) {
+            $name = $reg[1];
+        }
+
+        $response = $this->callVK('users.get', [
+          'user_ids' => $name,
+          'fields' => 'domain',
+          'name_case' => 'nom',
+        ]);
+
+        if (!isset($response->response[0]->id)) {
+          $model->errors[] = 'Can\'t process this user name';
+        }
+        else {
+          $user_id = $response->response[0]->id;
+
+          $model->username = "{$response->response[0]->first_name} {$response->response[0]->last_name}";
+          $model->user_link = "https://vk.com/{$response->response[0]->domain}";
+          $model->user_link = "<a target=\"_blank\" href=\"{$model->user_link}\">{$model->user_link}</a>";
+
+          // @todo: Cache friends
+          $response = $this->callVK('friends.get',[
+              'user_id' => $user_id,
+              'fields' => 'bdate',
+              'name_case' => 'nom',
+          ]);
+
+          if (!empty($response->response->items)) {
+            $friends = $response->response->items;
+            // @todo: Handle case when user has more than 5000 friends
+
+            $users_info = [
+              'count_correct' => 0,
+              'count_incorrect' => 0,
+              'count_all' => $response->response->count,
+            ];
+
+            foreach ($friends as $friend) {
+                if (!empty($friend->bdate)) {
+                    $bdate = $friend->bdate;
+                    if (preg_match('/^([0-9]+)\.([0-9]+)\.[0-9]+$/i', trim($bdate), $reg)) {
+                        $bdate = "{$reg[1]}.{$reg[2]}";
+                    }
+
+                    $zodiak = Zodiak::defineZodiakByDate($bdate); // @todo: Support horoscope type
+
+                    if ($zodiak !== NULL) {
+                        // Init Zodiak array if not yet exists
+                        if (!isset($users_info['correct'][$zodiak])) {
+                            $users_info['correct'][$zodiak] = [
+                                'count' => 0,
+                                'people' => [],
+                                'key' => $zodiak,
+                                'human_name' => $zodiak, // @todo: Implement human name in different languages
+                            ];
+                        }
+
+                        $users_info['correct'][$zodiak]['people'][$friend->id] = $friend;
+                        $users_info['correct'][$zodiak]['count']++;
+                        $users_info['count_correct']++;
+                    }
+                    else {
+                        $users_info['correct']['unknown'][$friend->id] = $friend;
+                    }
+                }
+                else {
+                    $users_info['missing_bdate'][$friend->id] = $friend;
+                    // @todo: Find birthdate using some algorithm using search
+                }
+              }
+
+              $users_info['count_incorrect'] = count($users_info['missing_bdate']);
+
+              // Count percentage
+              foreach ($users_info['correct'] as &$_info) {
+                $_info['percent_of_all'] = sprintf('%.2F', $_info['count'] * 100 / $users_info['count_all']);
+                $_info['percent_of_correct'] = sprintf('%.2F', $_info['count'] * 100 / $users_info['count_correct']);
+              }
+
+              $users_info['correct_sorted'] = $users_info['correct'];
+              uasort($users_info['correct_sorted'], function($a, $b) {
+                if ($a['count'] < $b['count']) {
+                    return 1;
+                }
+                elseif ($a['count'] > $b['count']) {
+                    return -1;
+                }
+                else {
+                    return 0;
+                }
+              });
+
+              $model->users_info = $users_info;
+            }
+            else {
+              $model->errors[] = 'Can\'t get friends';
+            }
+        }
+
         $this->pageContentBegin();
         $this->pageIncludeTemplate('generate_zodiak_diagram.tpl.php', $model);
         $this->pageContentEnd();
