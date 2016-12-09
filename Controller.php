@@ -76,6 +76,8 @@ public function __construct(Storage $storage) {
   global $settings;
   $this->_storage = $storage;
   $this->settings = $settings;
+
+  $this->_redirect_url = $this->settings['vk']['redirect_url'];
   $this->base_path = ltrim(dirname($_SERVER['SCRIPT_NAME']), '/');
   $this->templates_dir = __DIR__ . '/templates';
 }
