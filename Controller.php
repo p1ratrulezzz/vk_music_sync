@@ -8,6 +8,8 @@
 
 namespace VK;
 
+use VK\Processors\Zodiak;
+
 class Controller {
     const client_id = '4369157';
     const client_secret = 'VMOiU8u2WHf8A1Kz1H78';
@@ -35,17 +37,19 @@ class Controller {
     protected $_storage = null;
 
     public $base_path = '';
+    protected $templates_dir;
 
     public function __construct(Storage $storage) {
         $this->_storage = $storage;
-        $this->base_path = dirname($_SERVER['SCRIPT_NAME']);
+        $this->base_path = ltrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $this->templates_dir = __DIR__ . '/templates';
     }
 
     public function doAuthFlow() {
         $params = [
             'client_id' => static::client_id,
             'redirect_uri' => $this->_redirect_url,
-            'scope' => static::access_audio,
+            'scope' => static::access_offline,
             'v' => static::api_version,
             'response_type' => 'code',
         ];
@@ -186,7 +190,13 @@ class Controller {
     }
 
     public function doIndex() {
-        echo 'Your access token is OK. Daemon should work fine.';
+        if ($this->checkAuth()) {
+            echo 'Your access token is OK. Daemon should work fine.';
+        }
+
+        // Define variables to be used in input file.
+        $controller = $this;
+        include __DIR__ . '/templates/index.tpl.php';
     }
 
     /**
@@ -199,5 +209,57 @@ class Controller {
         $url .= '?' . http_build_query($params);
         header('Location: ' . $url);
         exit;
+    }
+
+    public function doAddSimpleCronTask() {
+        $controller = $this;
+        include $this->templates_dir. '/add_simple_cron_task.tpl.php';
+    }
+
+    public function doGenerateZodiak() {
+        $model = new Model();
+        $model->processorUrl = '/' . $this->base_path . '/';
+        $model->formHelperContent = '
+        <input type="hidden" name="do" value="generateZodiakProcess" />
+        ';
+
+        $this->pageContentBegin();
+        $this->pageIncludeTemplate('generate_zodiak_ui.tpl.php', $model);
+        $this->pageContentEnd();
+    }
+
+    public function doGenerateZodiakProcess() {
+        require_once __DIR__ . '/Processors/Zodiak.php';
+
+
+        $model = new Model();
+        $this->pageContentBegin();
+        $this->pageIncludeTemplate('generate_zodiak_diagram.tpl.php', $model);
+        $this->pageContentEnd();
+    }
+
+    public function pageIncludeTemplate($path, $model) {
+        include $this->templates_dir . '/' . $path;
+    }
+
+    public function pageHeader() {
+        $model = new Model();
+        $model->styles = [
+            '/' . $this->base_path . '/css/' . 'styles.css',
+        ];
+
+        $this->pageIncludeTemplate('page/header.tpl.php', $model);
+    }
+
+    public function pageContentBegin() {
+        $model = new Model();
+        $this->pageHeader();
+        $this->pageIncludeTemplate('page/body_begin.tpl.php', $model);
+    }
+
+    public function pageContentEnd() {
+        $model = new Model();
+        $this->pageIncludeTemplate('page/body_end.tpl.php', $model);
+        $this->pageIncludeTemplate('page/footer.tpl.php', $model);
     }
 }

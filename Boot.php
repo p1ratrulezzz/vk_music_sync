@@ -19,6 +19,9 @@ $settings += [
   'audio_per_request' => 1000,
 ];
 
+// Require model class
+require_once __DIR__ . '/Model.php';
+
 // Require interfaces
 require_once __DIR__ . '/Storage/AdapterInterface.php';
 

@@ -109,4 +109,7 @@ switch ($params['action']) {
 
     //$storage->saveState($state);
     break;
+  case 'cron_operation':
+    $task_info = $storage->acquireCronTask();
+    break;
 }
