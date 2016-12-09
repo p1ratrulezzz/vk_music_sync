@@ -378,6 +378,7 @@ public function __construct(Storage $storage) {
           }
       }
 
+      $model->link_back = "<a href=\"/{$this->base_path}/?do=generateZodiak\">Return back</a>";
       $this->pageContentBegin();
       $this->pageIncludeTemplate('generate_zodiak_diagram.tpl.php', $model);
       $this->pageContentEnd();

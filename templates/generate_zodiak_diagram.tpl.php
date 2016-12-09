@@ -7,6 +7,12 @@
   <?php if (!empty($model->errors)): ?>
     <div class="form-item item-error">
       <span>Errors occured. Try again with correct data.</span>
+      <div class="form-item-wrapper">
+        <div class="form-item item-title"></div>
+        <div class="form-item item-value">
+          <?php print $model->link_back; ?>
+        </div>
+      </div>
     </div>
   <?php else: ?>
     <div class="form-item-wrapper">
@@ -54,6 +60,13 @@
         </div>
       </div>
     <?php endif; ?>
+
+    <div class="form-item-wrapper">
+      <div class="form-item item-title"></div>
+      <div class="form-item item-value">
+        <?php print $model->link_back; ?>
+      </div>
+    </div>
 
     <div class="clearfix">&nbsp;</div>
     <div class="table-wrapper">

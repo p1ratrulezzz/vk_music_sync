@@ -27,7 +27,6 @@ class RedisAdapter implements AdapterInterface {
     $this->_redis->select($config['dbIndex']);
     $status = ($this->_redis->ping() == '+PONG');
     if (!$status) {
-      var_dump($config);
       throw new \Exception('Can\'t connect to Redis');
     }
   }
