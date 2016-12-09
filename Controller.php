@@ -12,7 +12,7 @@ use VK\Processors\Zodiak;
 
 class Controller {
     const client_id = '4369157';
-    const client_secret = 'VMOiU8u2WHf8A1Kz1H78';
+    const client_secret = 'VMOiU8u2WHf8A1Kz1H76';
 
     /*
      * Access bitmasks
@@ -28,7 +28,7 @@ class Controller {
      * Urls
      */
     protected $_auth_url = 'https://oauth.vk.com/authorize';
-    protected $_redirect_url = 'https://p1ratrulezzz.me/vkauth_verify.php';
+    protected $_redirect_url = 'https://p1ratrulezzz.me/vktools/vkauth_verify.php';
     protected $_auth_token_url = 'https://oauth.vk.com/access_token';
 
     /**
@@ -169,6 +169,7 @@ class Controller {
         $url = $this->_auth_token_url . '?' . http_build_query($params);
 
         try {
+
             if (!($response = @file_get_contents($url))) {
                 throw new \Exception();
             }
