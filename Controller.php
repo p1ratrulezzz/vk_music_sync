@@ -336,6 +336,7 @@ public function __construct(Storage $storage) {
 
           foreach ($friends as $friend) {
             // Search birth date using cache and API search
+            // @todo: Search this in background
             if (empty($friend->bdate) && ($bdate = $this->vkSearchUserBdate($friend)) !== FALSE) {
               $friend->bdate = $bdate;
             }
@@ -418,6 +419,10 @@ public function __construct(Storage $storage) {
     set_time_limit(3600);
     $cache_key = 'zodiak:bdate:' . $user->id;
     if (FALSE === ($cached = $this->_storage->get($cache_key, FALSE))) {
+      $this->_storage->setObject('zodiak:bdate:search:' . $user->id, ['id' => $user->id, 'user' => serialize($user)]);
+      $this->_storage->set($cache_key, '');
+
+      return FALSE; //@fixme: Implement in background
       $fields = explode(',', 'sex,bdate,city,country,university');
       $searchParams = [
         'q' => $user->first_name . ' ' . $user->last_name,
