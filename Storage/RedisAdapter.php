@@ -31,12 +31,17 @@ class RedisAdapter implements AdapterInterface {
     }
   }
 
-  public function get($name, $default = null) {
+  public function get($name) {
     return $this->_redis->get($name);
   }
 
-  public function set($name, $value) {
-    return $this->_redis->set($name, $value);
+  public function set($name, $value, $expire) {
+    $state = $this->_redis->set($name, $value);
+    if ($state && $expire) {
+      $this->_redis->expire($name, $expire);
+    }
+
+    return $state;
   }
 
   /**
@@ -64,6 +69,20 @@ class RedisAdapter implements AdapterInterface {
     $this->_redis->rPush('users', $id);
 
     return true;
+  }
+
+  public function getObject($name) {
+    return $this->_redis->hGetAll($name);
+  }
+
+  public function setObject($name, $value, $expire = null) {
+    $state = $this->_redis->hMset($name, $value);
+
+    if ($state && $expire) {
+      $this->_redis->expire($name, $expire);
+    }
+
+    return $state;
   }
 
   public function loadState() {

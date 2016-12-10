@@ -45,11 +45,23 @@ class Storage {
   }
 
   public function get($name, $default = null) {
-    return $this->_adapter->get($name, $default);
+    $value = $this->_adapter->get($name);
+
+    return $value !== false ? $value : $default;
   }
 
-  public function set($name, $value) {
-    return $this->_adapter->set($name, $value);
+  public function set($name, $value, $expire = null) {
+    return $this->_adapter->set($name, $value, $expire);
+  }
+
+  public function getObject($name, $default = null) {
+    $object = $this->_adapter->getObject($name);
+
+    return $object !== false ? $object : $default;
+  }
+
+  public function setObject($name, $value, $expire = null) {
+    return $this->_adapter->setObject($name, $value, $expire);
   }
 
   public function scheduleUser($id) {
