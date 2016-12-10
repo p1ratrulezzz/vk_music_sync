@@ -15,6 +15,12 @@ class Zodiak {
   const TYPE_NASA2016 = 'nasa2016';
 
   /**
+   * Languages
+   */
+  const LANG_EN = 'en';
+  const LANG_RU = 'ru';
+
+  /**
    * All zodiak names
    */
   const Z_ARIES = 'Aries';
@@ -90,6 +96,54 @@ class Zodiak {
     }
 
     return $data[$type];
+  }
+
+  public static function translate($zodiak_name, $language = 'en') {
+    $data = [
+      static::LANG_RU => [
+        static::Z_ARIES => [
+          'label' => 'Овен',
+        ],
+        static::Z_TAURUS => [
+          'label' => 'Телец',
+        ],
+        static::Z_GEMINI => [
+          'label' => 'Близнецы',
+        ],
+        static::Z_CANCER => [
+          'label' => 'Рак',
+        ],
+        static::Z_LEO => [
+          'label' => 'Лев',
+        ],
+        static::Z_VIRGO => [
+          'label' => 'Дева',
+        ],
+        static::Z_LIBRA => [
+          'label' => 'Весы',
+        ],
+        static::Z_SCORPIO => [
+          'label' => 'Скорпион',
+        ],
+        static::Z_OPHIUCHUS => [
+          'label' => 'Змееносец',
+        ],
+        static::Z_SAGITTARIUS => [
+          'label' => 'Стрелец',
+        ],
+        static::Z_CAPRICORN => [
+          'label' => 'Козерог',
+        ],
+        static::Z_AQUARIUS => [
+          'label' => 'Водолей',
+        ],
+        static::Z_PISCES => [
+          'label' => 'Рыбы',
+        ],
+      ],
+    ];
+
+    return isset($data[$language][$zodiak_name]) ? $data[$language][$zodiak_name]['label'] : $zodiak_name;
   }
 
   public static function getSignSortedMap($type = self::TYPE_NORMAL) {

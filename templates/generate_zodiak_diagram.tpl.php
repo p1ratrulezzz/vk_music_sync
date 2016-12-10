@@ -88,7 +88,7 @@
       <?php foreach ($model->users_info['correct_sorted'] as $item): ?>
         <div class="table-row row-<?php print $row_index++; ?>">
           <div class="table-col form-item col-1 first">
-            <?php print $item['human_name']; ?>
+            <?php print \VK\Processors\Zodiak::translate($item['human_name'], \VK\Processors\Zodiak::LANG_RU); ?>
           </div>
           <div class="table-col form-item col-2">
             <span class="value-container">
