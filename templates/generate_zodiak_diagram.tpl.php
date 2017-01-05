@@ -15,7 +15,6 @@
       </div>
     </div>
   <?php else: ?>
-    <?php if ($model->display_headers): ?>
     <div class="form-item-wrapper">
       <div class="form-item item-title">
         Name:
@@ -24,6 +23,7 @@
         <?php print $model->username; ?>
       </div>
     </div>
+    <?php if ($model->display_headers): ?>
     <div class="form-item-wrapper">
       <div class="form-item item-title">
         VK profile:
@@ -32,6 +32,7 @@
         <?php print $model->user_link; ?>
       </div>
     </div>
+    <?php endif; ?>
 
     <div class="form-item-wrapper">
       <div class="form-item item-title">
@@ -62,13 +63,13 @@
       </div>
     <?php endif; ?>
 
+    <?php if ($model->display_headers): ?>
     <div class="form-item-wrapper">
       <div class="form-item item-title"></div>
       <div class="form-item item-value">
         <?php print $model->link_back; ?>
       </div>
     </div>
-
     <?php endif; ?>
 
     <div class="clearfix">&nbsp;</div>
