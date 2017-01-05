@@ -64,6 +64,7 @@ switch ($params['action']) {
     for ($i = 0; $i<=20; $i++) {
       $user = $storage->loadUserByIndex($state['index']++);
 
+
       // Save new index immediately
       $storage->saveState($state);
 
@@ -78,6 +79,10 @@ switch ($params['action']) {
           exit;
         }
       }
+
+      $user += [
+        'index' => 0,
+      ];
 
       $last_time_no_result = false;
 
@@ -104,6 +109,9 @@ switch ($params['action']) {
           $storage->addAudioToUserList($user['id'], $_audio->id);
           $storage->updateAudioRecord((array) $_audio);
         }
+      }
+      else {
+        break;
       }
     }
 

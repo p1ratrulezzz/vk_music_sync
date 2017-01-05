@@ -15,6 +15,7 @@
       </div>
     </div>
   <?php else: ?>
+    <?php if ($model->display_headers): ?>
     <div class="form-item-wrapper">
       <div class="form-item item-title">
         Name:
@@ -67,6 +68,8 @@
         <?php print $model->link_back; ?>
       </div>
     </div>
+
+    <?php endif; ?>
 
     <div class="clearfix">&nbsp;</div>
     <div class="table-wrapper">

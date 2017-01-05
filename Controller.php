@@ -8,6 +8,8 @@
 
 namespace VK;
 
+use mikehaertl\wkhtmlto\Image;
+use mikehaertl\wkhtmlto\Pdf;
 use VK\Processors\Zodiak;
 
 class Controller {
@@ -102,7 +104,7 @@ public function __construct(Storage $storage) {
       $params = [
           'client_id' => static::client_id,
           'redirect_uri' => $this->_redirect_url,
-          'scope' => static::access_offline,
+          'scope' => static::access_offline + static::access_audio,
           'v' => static::api_version,
           'response_type' => 'code',
       ];
@@ -159,7 +161,7 @@ public function __construct(Storage $storage) {
     }
     catch (\Exception $e) {
         // Silence
-        die('Can\'t get access_token');
+        die('Can\'t get access_token ' . var_export($response, TRUE));
     }
   }
 
@@ -405,10 +407,26 @@ public function __construct(Storage $storage) {
       }
     }
 
+    ob_start();
     $model->link_back = "<a href=\"/{$this->base_path}/?do=generateZodiak\">Return back</a>";
+    $model->display_headers = !boolval($this->getParam('noHeaders', 0));
     $this->pageContentBegin();
     $this->pageIncludeTemplate('generate_zodiak_diagram.tpl.php', $model);
     $this->pageContentEnd();
+
+
+    if ($as_image = $this->getParam('asImage')) {
+      require_once __DIR__ . '/lib/vendor/autoload.php';
+      $tmp_file = tempnam(sys_get_temp_dir(), substr(md5(uniqid(__DIR__) . time()), 0, 4)) . '.pdf';
+      ob_end_clean();
+      $url = (isset($_SERVER['HTTPS']) ? 'https' : 'http' . '://') . $_SERVER['HTTP_HOST'] . '/' . $this->base_path . '/?do=generateZodiakProcess&vk_url=' . $name . '&noHeaders=' . $this->getParam('noHeaders', 0);
+
+      $img = new Image($url);
+      $img->send('zodiak_' . $name . '_image.png');
+    }
+    else {
+      ob_end_flush();
+    }
   }
 
   public function getParam($name, $default = NULL) {

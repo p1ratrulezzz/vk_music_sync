@@ -116,15 +116,15 @@ class RedisAdapter implements AdapterInterface {
 
   public function addAudioToUserList($user_id, $audio_id) {
     $key = 'audiolist:' . $user_id;
-    $key2 = 'audiolist2:' . $user_id;
-//    $latest_item = $this->_redis->zRevRange($key, 0, 0, true);
-//    $score = 0;
-//    if (!empty($latest_item)) {
-//      $score = reset($latest_item) + 1;
-//    }
+    //$key2 = 'audiolist2:' . $user_id;
+    $latest_item = $this->_redis->zRevRange($key, 0, 0, true);
+    $score = 0;
+    if (!empty($latest_item)) {
+      $score = reset($latest_item) + 1;
+    }
 
-    $this->_redis->sAdd($key, $audio_id);
-    $this->_redis->hSet($key2, $audio_id, $audio_id);
+    $this->_redis->zAdd($key, $score, $audio_id);
+    //$this->_redis->hSet($key2, $audio_id, $audio_id);
 
     return true;
   }
