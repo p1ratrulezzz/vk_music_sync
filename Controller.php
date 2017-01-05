@@ -418,16 +418,22 @@ public function __construct(Storage $storage) {
 
 
     if ($as_image = $this->getParam('asImage')) {
+      if (!empty($model->errors)) {
+        header("HTTP/1.0 404 Not Found");
+        exit;
+      }
+
       require_once __DIR__ . '/lib/vendor/autoload.php';
-      $tmp_file = tempnam(sys_get_temp_dir(), substr(md5(uniqid(__DIR__) . time()), 0, 4)) . '.pdf';
       ob_end_clean();
       $url = (isset($_SERVER['HTTPS']) ? 'https' : 'http' ) . '://' . $_SERVER['HTTP_HOST'] . '/' . $this->base_path . '/?do=generateZodiakProcess&vk_url=' . $name_unchanged . '&noHeaders=' . $this->getParam('noHeaders', 0);
 
       $img = new Image($url);
       $img->setOptions([
         'width' => 410,
+        'format' => 'jpg',
       ]);
-      $img->send('zodiak_' . $name . '_image.png');
+
+      $img->send('zodiak_' . $name . '_image.jpg');
     }
     else {
       ob_end_flush();
