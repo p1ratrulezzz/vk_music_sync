@@ -84,7 +84,7 @@
           Percent of all friends with birthdate
         </div>
         <div class="table-col form-item col-3">
-          Percent of all friends (including users without birthdates)
+          Percent of all friends (+without birthdates)
         </div>
       </div>
 
