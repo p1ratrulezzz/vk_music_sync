@@ -431,6 +431,7 @@ public function __construct(Storage $storage) {
       $img->setOptions([
         'width' => 410,
         'format' => 'jpg',
+        'quality' => 100,
       ]);
 
       $img->send('zodiak_' . $name . '_image.jpg');
