@@ -421,7 +421,7 @@ public function __construct(Storage $storage) {
       require_once __DIR__ . '/lib/vendor/autoload.php';
       $tmp_file = tempnam(sys_get_temp_dir(), substr(md5(uniqid(__DIR__) . time()), 0, 4)) . '.pdf';
       ob_end_clean();
-      $url = (isset($_SERVER['HTTPS']) ? 'https' : 'http' . '://') . $_SERVER['HTTP_HOST'] . '/' . $this->base_path . '/?do=generateZodiakProcess&vk_url=' . $name_unchanged . '&noHeaders=' . $this->getParam('noHeaders', 0);
+      $url = (isset($_SERVER['HTTPS']) ? 'https' : 'http' ) . '://' . $_SERVER['HTTP_HOST'] . '/' . $this->base_path . '/?do=generateZodiakProcess&vk_url=' . $name_unchanged . '&noHeaders=' . $this->getParam('noHeaders', 0);
 
       $img = new Image($url);
       $img->setOptions([
