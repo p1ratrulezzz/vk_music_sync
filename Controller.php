@@ -337,6 +337,10 @@ public function __construct(Storage $storage) {
           if (!empty($response->response->items)) {
             $friends = array_merge($friends, $response->response->items);
             $friends_all = $response->response->count;
+            
+            if ($friends_all <= $per_page) {
+              break;
+            }
           }
           
         }
