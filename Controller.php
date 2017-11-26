@@ -321,21 +321,34 @@ public function __construct(Storage $storage) {
         $model->user_link = "https://vk.com/{$response->response[0]->domain}";
         $model->user_link = "<a target=\"_blank\" href=\"{$model->user_link}\">{$model->user_link}</a>";
 
-        // @todo: Cache friends
-        $response = $this->callVK('friends.get', [
-          'user_id'   => $user_id,
-          'fields'    => 'sex,bdate,city,country,education,relation,universities',
-          'name_case' => 'nom',
-        ]);
+        $friends = [];
+        $friends_all = 0;
+        $per_page = 5000;
+        for ($i=0; $i<=1; $i++) {
+          // @todo: Cache friends
+          $response = $this->callVK('friends.get', [
+            'user_id'   => $user_id,
+            'fields'    => 'sex,bdate,city,country,education,relation,universities',
+            'name_case' => 'nom',
+            'count' => $per_page,
+            'offset' => $i * $per_page,
+          ]);
+          
+          if (!empty($response->response->items)) {
+            $friends = array_merge($friends, $response->response->items);
+            $friends_all = $response->response->count;
+          }
+          
+        }
 
-        if (!empty($response->response->items)) {
-          $friends = $response->response->items;
+        if (!empty($friends)) {
+          // $friends = $response->response->items;
           // @todo: Handle case when user has more than 5000 friends
 
           $users_info = [
             'count_correct'   => 0,
             'count_incorrect' => 0,
-            'count_all'       => $response->response->count,
+            'count_all'       => $friends_all,
           ];
 
           foreach ($friends as $friend) {
